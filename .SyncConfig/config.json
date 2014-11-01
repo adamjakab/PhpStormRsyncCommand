@@ -1,0 +1,9 @@
+{
+    "remote_name": "My Server",
+    "remote_address": "my.server.com",
+    "remote_user": "rsync",
+    "local_root": "/home/jack/www/vhost1",
+    "remote_root": "/home/vhost1",
+    "rsync_options_up" : "--dry-run -rzv --times --filter='P .SyncConfig' --filter='P .idea' --filter='P .git'",
+    "rsync_options_down" : "--dry-run -rzv --times --filter='P .SyncConfig' --filter='P .idea' --filter='P .git'"
+}
