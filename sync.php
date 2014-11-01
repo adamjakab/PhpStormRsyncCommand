@@ -81,7 +81,7 @@ class Sync {
 		$this->log("Executing Sync($this->SYNCDIRECTION)...");
 
 		$relativePath = str_replace($this->CONFIG->local_root, "", $this->SYNCFOLDER);
-		$localPath = $this->SYNCFOLDER;
+		$localPath = $this->SYNCFOLDER."/";
 		$remotePath = $this->CONFIG->remote_user."@".$this->CONFIG->remote_address.":".$this->CONFIG->remote_root.$relativePath."/";
 
 		if($this->SYNCDIRECTION == "up") {
