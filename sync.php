@@ -66,12 +66,63 @@ class Sync {
 			$this->log("No valid Sync configuration!", true);
 			die();
 		}
-		$this->log("Sync config: " . json_encode($this->CONFIG));
 
 		//add excludes file to config if any
+		$this->addExcludesFile();
+
+		//do it
+		$this->doSync();
+	}
+
+	/**
+	 * Do the job
+	 */
+	private function doSync() {
+		$this->log("Executing Sync($this->SYNCDIRECTION)...");
+
+		$relativePath = str_replace($this->CONFIG->local_root, "", $this->SYNCFOLDER);
+		$localPath = $this->SYNCFOLDER;
+		$remotePath = $this->CONFIG->remote_user."@".$this->CONFIG->remote_address.":".$this->CONFIG->remote_root.$relativePath."/";
+
+		if($this->SYNCDIRECTION == "up") {
+			$rsyncOptions = (isset($this->CONFIG->rsync_options_up) ? $this->CONFIG->rsync_options_up : "");
+			$excludesFile = (isset($this->CONFIG->excludes_file_up) ? $this->CONFIG->excludes_file_up : "");
+		} else if ($this->SYNCDIRECTION == "down") {
+			$rsyncOptions = (isset($this->CONFIG->rsync_options_down) ? $this->CONFIG->rsync_options_down : "");
+			$excludesFile = (isset($this->CONFIG->excludes_file_down) ? $this->CONFIG->excludes_file_down : "");
+		}
+
+
+		$cmd = $this->RSYNCBIN
+			. (isset($rsyncOptions) ? " " . $rsyncOptions : "")
+			. (isset($excludesFile) ? " --exclude-from ".$excludesFile:"")
+			. " -e ssh"
+			. ( $this->SYNCDIRECTION == "up" ?
+				" " . $localPath . " " . $remotePath :
+				" " . $remotePath . " " . $localPath
+			)
+			. "";
+		$this->log("Executing rsync: $cmd");
+		set_time_limit(0);
+		system($cmd);
 	}
 
 
+
+
+	/**
+	 * Find if there is an "excludes.txt" file in the configuration folder and add it to configuration
+	 */
+	private function addExcludesFile() {
+		$excludesFileUp = $this->CONFIGFOLDERPATH."/excludes_up.txt";
+		if(file_exists($excludesFileUp)) {
+			$this->CONFIG->excludes_file_up = $excludesFileUp;
+		}
+		$excludesFileDown = $this->CONFIGFOLDERPATH."/excludes_down.txt";
+		if(file_exists($excludesFileDown)) {
+			$this->CONFIG->excludes_file_down = $excludesFileDown;
+		}
+	}
 
 	/**
 	 * Find and read the configuration file
@@ -83,6 +134,8 @@ class Sync {
 		if(file_exists($configFile)) {
 			$config = json_decode(file_get_contents($configFile));
 			if(json_last_error() == JSON_ERROR_NONE) {
+				//todo: we need checks and realpath on local folder base
+				$config->local_root = realpath($config->local_root);
 				$answer = $config;
 			} else {
 				$this->log("Reading config.json failed: " . json_last_error_msg());
