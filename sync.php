@@ -118,9 +118,6 @@ class Sync {
 		system($cmd);
 	}
 
-
-
-
 	/**
 	 * Find if there is an "excludes.txt" file in the configuration folder and add it to configuration
 	 */
