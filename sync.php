@@ -103,6 +103,17 @@ class Sync {
 			)
 			. "";
 		$this->log("Executing rsync: $cmd");
+
+		//When pushing up ask for confirmation
+		if($this->SYNCDIRECTION == "up") {
+			$this->log("Are you sure you want to push files to remote? [y/n]: ", true, false);
+			$confirmation = strtolower(trim(fgets(STDIN)));
+			if ( $confirmation !== 'y' ) {
+				$this->log("Aborted by user");
+				exit(0);
+			}
+		}
+
 		set_time_limit(0);
 		system($cmd);
 	}
@@ -178,13 +189,14 @@ class Sync {
 	/**
 	 * @param string $msg
 	 * @param boolean $important
+	 * @param boolean $newline
 	 */
-	private function log($msg, $important=false) {
+	private function log($msg, $important=false, $newline=true) {
 		if($this->debug || $important) {
 			if($important) {
 				$msg = "\033[01;31m$msg\033[0m";
 			}
-			echo $msg . "\n";
+			echo $msg . ($newline?"\n":"");
 		}
 	}
 }
